@@ -1,80 +1,70 @@
-Chatbot Gemini (Spring Boot + WebClient + React/HTML)
+Gemini Chatbot (Spring Boot + WebClient + HTML/React)
 
+This project implements a simple chatbot application that uses the Gemini API for response generation. The backend is built on the Spring Boot framework using WebClient, while the user interface is provided by a static HTML/JavaScript file or a React component served by Spring.
 
-Ten projekt jest aplikacją typu chatbot, która wykorzystuje Gemini API do generowania odpowiedzi. Backend jest zbudowany na platformie Spring Boot z wykorzystaniem WebClient, a interfejs użytkownika jest obsługiwany przez statyczny plik HTML/JavaScript lub komponent React serwowany przez Spring.
+-----------------------------------------------------------------------------------------------------------------------
 
-
-⚙️ Wymagania
+⚙️ Requirements
 
 Java 17+
 
-Maven lub Gradle (projekt używa Maven, zgodnie ze strukturą)
+Maven or Gradle (The project structure uses Maven)
 
-Klucz API Gemini: Niezbędny do działania serwisu.
+Gemini API Key: Necessary for the service to function.
 
-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
-🚀 Uruchomienie aplikacji
+🚀 Getting Started
 
-1. Konfiguracja klucza API
 
-Aplikacja Spring Boot wymaga klucza API Gemini. Należy go skonfigurować w pliku src/main/resources/application.yml:
+1. API Key Configuration
+
+The Spring Boot application requires a Gemini API key. You must configure it in the src/main/resources/application.yml file:
 
 gemini:
-api-key: "TWOJ_KLUCZ_API_GEMINI" # Zastąp ten ciąg swoim rzeczywistym kluczem
-model: "gemini-2.5-flash"
+    - api:
+    - key: "YOUR_GEMINI_API_KEY" # Replace this string with your actual key
+    - model: "gemini-2.5-flash"
 
 
-Zdecydowanie zaleca się użycie zmiennych środowiskowych do przechowywania kluczy API, zamiast umieszczania ich bezpośrednio w plikach konfiguracyjnych.
+Security Note: It is strongly recommended to use environment variables to store API keys instead of placing them directly in configuration files.
 
 
-2. Uruchomienie Backendu (Spring Boot)
+2. Running the Backend (Spring Boot)
 
-- Przejdź do katalogu głównego projektu:
+Navigate to the project's root directory:
 
 `cd chat-app`
 
-
-- Zbuduj projekt za pomocą Mavena:
+Build the project using Maven:
 
 `mvn clean install`
 
 
-- Uruchom aplikację:
+Run the application:
 
 `mvn spring-boot:run`
 
 
-Aplikacja backendowa uruchomi się domyślnie na porcie 8080.
+The backend application will start on port 8080 by default.
 
 
-3. Dostęp do Front-endu
+3. Accessing the Front-end
 
-Po uruchomieniu serwera Spring Boot:
+Once the Spring Boot server is running:
 
-Interfejs czatu będzie dostępny pod adresem: <bold>http://localhost:8080/</bold>
+The chat interface will be available at: http://localhost:8080/
 
-Spring Boot automatycznie serwuje statyczny plik index.html (lub alternatywnie komponent ChatApp.jsx) z katalogu src/main/resources/static/.
+Spring Boot automatically serves the static index.html file (or the alternative ChatApp.jsx component) from the src/main/resources/static/ directory.
 
-----------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------------
 
-🧪 Testy
+🧪 Testing
 
-Projekt zawiera testy jednostkowe i integracyjne, które można uruchomić za pomocą Mavena.
+The project includes unit and integration tests that can be run using Maven.
 
 Backend (Java)
 
-Testy kontrolera (ChatControllerTest) i serwisu (ChatServiceTest):
+Tests for the Controller (ChatControllerTests) and Service (ChatServiceTests):
 
-`mvn test`
-
-----------------------------------------------------------------------------------------------------------------
-
-Frontend (React/JSX)
-
-Jeśli projekt korzysta z pełnego środowiska React (z package.json i narzędziami takimi jak Jest i RTL), należy uruchomić testy w katalogu front-endu (jeśli taki istnieje, np. /src/main/frontend).
-
-W tym projekcie plik App.test.jsx jest demonstracją. Aby go uruchomić, potrzebne jest pełne środowisko Node.js/Jest/RTL.
-
-
-
+mvn test
