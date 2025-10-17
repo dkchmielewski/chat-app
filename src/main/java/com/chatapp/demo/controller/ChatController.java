@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Kontroler REST do obsługi punktu końcowego chata.
+ * REST Controller to handle the chat endpoint.
  */
 @RestController
 @RequestMapping("/api/chat")
@@ -22,14 +22,14 @@ public class ChatController {
     }
 
     /**
-     * Endpoint do wysyłania wiadomości i otrzymywania odpowiedzi od chatbota.
-     * Użyj: POST http://localhost:8080/api/chat
-     * Body (JSON): {"message": "Twoja wiadomość"}
+     * Endpoint for sending messages and receiving a response from the chatbot.
+     * Use: POST http://localhost:8080/api/chat
+     * Body (JSON): {"message": "Your message"}
      */
     @PostMapping
     public ChatResponse sendMessage(@RequestBody ChatRequest request) {
         if (request.getMessage() == null || request.getMessage().trim().isEmpty()) {
-            return new ChatResponse("Proszę podać wiadomość.");
+            return new ChatResponse("Please provide a message.");
         }
 
         String aiResponse = chatService.getGeminiResponse(request.getMessage());

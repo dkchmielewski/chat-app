@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // Dodano Builder dla bezpieczniejszej inicjalizacji
+@Builder
 public class Content {
     private String role;
     private List<Part> parts;

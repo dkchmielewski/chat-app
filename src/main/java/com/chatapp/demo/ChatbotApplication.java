@@ -9,7 +9,7 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * Główna klasa aplikacji Spring Boot.
+ * Main Spring Boot application class.
  */
 @SpringBootApplication
 public class ChatbotApplication {
@@ -19,7 +19,7 @@ public class ChatbotApplication {
 	}
 
 	/**
-	 * Konfiguracja beana WebClient.Builder do tworzenia WebClient.
+	 * Configuration for the WebClient.Builder bean used to create WebClient.
 	 */
 	@Bean
 	public WebClient.Builder webClientBuilder() {
@@ -27,15 +27,15 @@ public class ChatbotApplication {
 	}
 
 	/**
-	 * Konfiguracja CORS (Cross-Origin Resource Sharing).
-	 * Pozwala UI (działającemu np. na innym porcie) komunikować się z API.
+	 * Configuration for CORS (Cross-Origin Resource Sharing).
+	 * Allows the UI (e.g., running on a different port) to communicate with the API.
 	 */
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
 			@Override
 			public void addCorsMappings(CorsRegistry registry) {
-				// Pozwól na dostęp do /api/chat z dowolnego źródła dla prostoty demo
+				// Allow access to /api/chat from any source for demo simplicity
 				registry.addMapping("/api/**")
 						.allowedOrigins("*")
 						.allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
@@ -43,9 +43,5 @@ public class ChatbotApplication {
 		};
 	}
 }
-
-// --- DTO dla komunikacji z Gemini API ---
-
-// USUNIĘTO GenerationConfig, ponieważ API go nie akceptuje w ten sposób
 
 

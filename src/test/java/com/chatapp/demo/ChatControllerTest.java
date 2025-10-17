@@ -19,11 +19,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
- * Testy integracyjne dla ChatController.
- * Używa @WebMvcTest, aby załadować tylko warstwę kontrolera i zależne komponenty.
+ * Integration tests for ChatController.
+ * Uses @WebMvcTest to load only the controller layer and dependent components.
  */
-// Jawne wskazanie kontrolera do testowania i użycie @ContextConfiguration do zaimportowania
-// głównej klasy aplikacji, co powinno rozwiązać problem z ładowaniem kontekstu.
 @WebMvcTest(controllers = ChatController.class)
 @ContextConfiguration(classes = ChatbotApplication.class)
 public class ChatControllerTest {
@@ -31,64 +29,51 @@ public class ChatControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean // Mockujemy ChatService, aby nie ładować jego rzeczywistych zależności
+    @MockBean
     private ChatService chatService;
 
     @Autowired
     private ObjectMapper objectMapper;
 
-    // Poprawna ścieżka do endpointu POST
     private static final String CHAT_ENDPOINT = "/api/chat";
 
     @Test
     void shouldReturnBotResponseOnValidMessage() throws Exception {
-        // Arrange
         String userMessage = "Witaj!";
         String botResponse = "Cześć! Jak mogę Ci pomóc?";
 
-        // Mockowanie zachowania serwisu
         when(chatService.getGeminiResponse(anyString())).thenReturn(botResponse);
 
-        // Użycie ChatRequest
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setMessage(userMessage);
 
-        // Act & Assert
-        // UŻYTO POPRAWNEJ ŚCIEŻKI: /api/chat
         mockMvc.perform(post(CHAT_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chatRequest)))
                 .andExpect(status().isOk())
-                // Kontroler zwraca ChatResponse, który jest serializowany do JSON
-                // Oczekujemy pola 'response' w zwróconym JSONie
                 .andExpect(jsonPath("$.response").value(botResponse));
     }
 
     @Test
     void shouldReturnBadRequestOnEmptyMessage() throws Exception {
-        // Arrange
         String validationMessage = "Proszę podać wiadomość.";
-        // Użycie ChatRequest
-        ChatRequest chatRequest = new ChatRequest();
-        chatRequest.setMessage(""); // Pusta wiadomość
 
-        // Act & Assert
-        // UŻYTO POPRAWNEJ ŚCIEŻKI: /api/chat
+        ChatRequest chatRequest = new ChatRequest();
+        chatRequest.setMessage("");
+
         mockMvc.perform(post(CHAT_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(chatRequest)))
-                .andExpect(status().isOk()) // Kontroler zwraca 200 OK, ale w ciele jest błąd walidacji!
-                // Weryfikacja, że odpowiedź zawiera oczekiwany komunikat o błędzie walidacji
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.response").value(validationMessage));
     }
 
     @Test
     void shouldReturnBadRequestOnMissingBody() throws Exception {
-        // Act & Assert
-        // UŻYTO POPRAWNEJ ŚCIEŻKI: /api/chat
+
         mockMvc.perform(post(CHAT_ENDPOINT)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("")) // Pusta treść POST
-                .andExpect(status().isBadRequest()); // Oczekujemy statusu 400 Bad Request od Springa
+                        .content(""))
+                .andExpect(status().isBadRequest());
     }
 }

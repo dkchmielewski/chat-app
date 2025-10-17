@@ -20,13 +20,12 @@ import java.util.stream.Collectors;
 @Service
 public class ChatService {
 
-    // Zmieniono na WebClient
     private final WebClient webClient;
 
-    // Historia rozmowy (uproszczona implementacja w pamięci). Już NIE zawiera instrukcji systemowej.
+    // Chat history (simplified in-memory implementation). NO longer includes system instruction.
     private final List<Content> chatHistory = new ArrayList<>();
 
-    // Instrukcja systemowa przechowywana jako String
+    // System instruction stored as a String
     private final String systemPrompt = "You are a helpful and friendly chatbot. Respond concisely in Polish.";
 
     @Value("${gemini.api.key}")
@@ -38,9 +37,7 @@ public class ChatService {
     @Value("${gemini.api.url}")
     private String baseUrl;
 
-    // Zmieniono konstruktor na użycie WebClient.Builder
     public ChatService(WebClient.Builder webClientBuilder) {
-        // Używamy webClientBuilder do utworzenia WebClient
         this.webClient = webClientBuilder.build();
     }
 
@@ -49,14 +46,14 @@ public class ChatService {
      * Dodaje nowe wiadomości do historii rozmowy.
      */
     public String getGeminiResponse(String userMessage) {
-        // 1. Przygotowanie ciała żądania z historią rozmowy i instrukcją systemową
-        // Przekazujemy systemPrompt do konstruktora, który teraz umieszcza go w GeminiRequest jako systemInstruction
+        // 1. Preparing the request body with chat history and system instruction
+        // We pass systemPrompt to the constructor, which now places it in GeminiRequest as systemInstruction
         GeminiRequest requestBody = new GeminiRequest(userMessage, chatHistory, systemPrompt);
 
         String url = baseUrl + modelName + ":generateContent?key=" + apiKey;
 
         try {
-            // 2. Wykonanie żądania POST za pomocą WebClient (używamy .block() w synchronicznym Kontrolerze)
+            // 2. Executing the POST request using WebClient (we use .block() in a synchronous Controller)
             GeminiResponse geminiResponse = webClient.post()
                     .uri(url)
                     .contentType(MediaType.APPLICATION_JSON)
@@ -64,15 +61,14 @@ public class ChatService {
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, clientResponse ->
                             clientResponse.bodyToMono(String.class).flatMap(errorBody -> {
-                                // Logowanie szczegółowego błędu JSON
                                 System.err.println("API Error Response Body: " + errorBody);
                                 return reactor.core.publisher.Mono.error(new RuntimeException("API zwróciło błąd: " + clientResponse.statusCode() + ", Ciało błędu: " + errorBody));
                             })
                     )
                     .bodyToMono(GeminiResponse.class)
-                    .block(); // Blokujemy, aby pasowało do synchronicznej sygnatury metody
+                    .block(); // Blocking to fit the synchronous method signature
 
-            // 3. Przetwarzanie odpowiedzi
+            // 3. Processing the response
             if (geminiResponse != null && geminiResponse.getCandidates() != null && !geminiResponse.getCandidates().isEmpty()) {
                 String botResponse = geminiResponse.getCandidates().stream()
                         .map(c -> c.getContent().getParts().stream()
@@ -80,10 +76,10 @@ public class ChatService {
                                 .collect(Collectors.joining()))
                         .collect(Collectors.joining());
 
-                // 4. Aktualizacja historii rozmowy (tylko "user" i "model")
-                // Dodaj wiadomość użytkownika
+                // 4. Updating the chat history (only "user" and "model")
+                // Add user message
                 chatHistory.add(Content.builder().role("user").parts(List.of(new Part(userMessage))).build());
-                // Dodaj odpowiedź bota
+                // Add bot response
                 chatHistory.add(Content.builder().role("model").parts(List.of(new Part(botResponse))).build());
 
                 return botResponse;
@@ -92,7 +88,6 @@ public class ChatService {
             return "Błąd: Nie udało się uzyskać poprawnej odpowiedzi od API.";
 
         } catch (Exception e) {
-            // Logowanie szczegółów błędu
             System.err.println("Błąd komunikacji z API: " + e.getMessage());
             return "Wystąpił błąd serwera podczas komunikacji z AI. Sprawdź klucz API i logi.";
         }

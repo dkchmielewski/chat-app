@@ -27,8 +27,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
- * Testy jednostkowe dla ChatService.
- * Używa Mockito i ExchangeFunction do mockowania komunikacji WebClient z zewnętrznym API.
+ * Unit tests for ChatService.
+ * Uses Mockito and ExchangeFunction to mock WebClient communication with the external API.
  */
 public class ChatServiceTest {
 
@@ -38,82 +38,67 @@ public class ChatServiceTest {
     @Mock
     private WebClient.Builder webClientBuilder;
 
-    private ExchangeFunction exchangeFunction; // Użyjemy ExchangeFunction do mockowania WebClient
+    private ExchangeFunction exchangeFunction;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // Stałe do mockowania wartości @Value
     private final String MOCK_API_KEY = "mock_key";
     private final String MOCK_MODEL_NAME = "gemini-2.5-flash";
     private final String MOCK_BASE_URL = "https://mock-api.com/models/";
     private final String MOCK_URL;
 
     public ChatServiceTest() {
-        // Konstrukcja oczekiwanego URL
         MOCK_URL = MOCK_BASE_URL + MOCK_MODEL_NAME + ":generateContent?key=" + MOCK_API_KEY;
     }
 
     @BeforeEach
     void setUp() {
-        // Inicjalizacja Mockito Mocks
         MockitoAnnotations.openMocks(this);
 
-        // 1. Mockowanie ExchangeFunction
         exchangeFunction = mock(ExchangeFunction.class);
 
-        // 2. Tworzenie mockowanego WebClienta
         WebClient mockWebClient = WebClient.builder()
                 .exchangeFunction(exchangeFunction)
                 .build();
 
-        // 3. Konfiguracja mocka WebClient.Builder, aby zwracał nasz mockowany klient.
         when(webClientBuilder.build()).thenReturn(mockWebClient);
 
-        // 4. Wstrzyknięcie (ponowna inicjalizacja) serwisu z mockowanym WebClientem
         chatService = new ChatService(webClientBuilder);
 
-        // 5. Użycie ReflectionTestUtils do wstrzyknięcia wartości @Value
         ReflectionTestUtils.setField(chatService, "apiKey", MOCK_API_KEY);
         ReflectionTestUtils.setField(chatService, "modelName", MOCK_MODEL_NAME);
         ReflectionTestUtils.setField(chatService, "baseUrl", MOCK_BASE_URL);
 
-        // 6. Wyczyszczenie historii czatu przed każdym testem
         ReflectionTestUtils.setField(chatService, "chatHistory", new ArrayList<>());
     }
 
     /**
-     * Uproszczony helper do tworzenia ClientResponse dla ExchangeFunction.
-     * Symuluje odpowiedź zawierającą JSON GeminiResponse.
+     * Simplified helper to create ClientResponse for ExchangeFunction.
+     * Simulates a response containing the GeminiResponse JSON.
      */
     private ClientResponse mockSuccessResponse(String responseBody) throws Exception {
-        // Wczytanie JSON do obiektu GeminiResponse
         GeminiResponse geminiResponse = objectMapper.readValue(responseBody, GeminiResponse.class);
 
-        // Mockowanie ClientResponse
         ClientResponse clientResponse = mock(ClientResponse.class);
         when(clientResponse.statusCode()).thenReturn(HttpStatus.OK);
 
-        // Mockowanie bodyToMono, które zwraca sparsowany obiekt
         when(clientResponse.bodyToMono(GeminiResponse.class)).thenReturn(Mono.just(geminiResponse));
 
-        // Upewnienie się, że bodyToMono(String.class) zwraca pusty ciąg (lub pomijamy to, jeśli nie jest używane)
         when(clientResponse.bodyToMono(String.class)).thenReturn(Mono.empty());
 
         return clientResponse;
     }
 
     /**
-     * Uproszczony helper do tworzenia ClientResponse dla ExchangeFunction w przypadku błędu.
-     * Symuluje błąd HTTP i zwraca ciało błędu jako String.
+     * Simplified helper to create ClientResponse for ExchangeFunction in case of an error.
+     * Simulates an HTTP error and returns the error body as a String.
      */
     private ClientResponse mockErrorResponse(HttpStatus status, String errorBody) {
         ClientResponse clientResponse = mock(ClientResponse.class);
         when(clientResponse.statusCode()).thenReturn(status);
 
-        // W przypadku błędu, zwracamy ciało błędu jako String
         when(clientResponse.bodyToMono(String.class)).thenReturn(Mono.just(errorBody));
 
-        // Mockowanie bodyToMono(GeminiResponse.class) na pusty Mono lub błąd
         when(clientResponse.bodyToMono(GeminiResponse.class)).thenReturn(Mono.error(new RuntimeException("API error occurred")));
 
         return clientResponse;
@@ -139,7 +124,6 @@ public class ChatServiceTest {
 
         String responseBody = objectMapper.writeValueAsString(mockResponse);
 
-        // Użycie ExchangeFunction do symulowania pomyślnej odpowiedzi
         ClientResponse mockResponse200 = mockSuccessResponse(responseBody);
         when(exchangeFunction.exchange(any())).thenReturn(Mono.just(mockResponse200));
 
@@ -151,7 +135,6 @@ public class ChatServiceTest {
         // Assert
         assertEquals(expectedBotResponse, actualResponse, "Odpowiedź bota powinna być poprawnie sparsowana.");
 
-        // Weryfikacja historii rozmowy (user + model)
         List<Content> history = (List<Content>) ReflectionTestUtils.getField(chatService, "chatHistory");
         assertEquals(2, history.size(), "Historia powinna mieć 2 wiadomości.");
         assertEquals(userMessage, history.get(0).getParts().get(0).getText(), "Pierwsza wiadomość powinna być wiadomością użytkownika.");
@@ -163,7 +146,6 @@ public class ChatServiceTest {
         // Arrange
         String errorBody = "{\"error\": \"API key is invalid\"}";
 
-        // Użycie ExchangeFunction do symulowania błędu HTTP (np. 401 Unauthorized)
         ClientResponse mockResponse401 = mockErrorResponse(HttpStatus.UNAUTHORIZED, errorBody);
         when(exchangeFunction.exchange(any())).thenReturn(Mono.just(mockResponse401));
 
@@ -174,7 +156,6 @@ public class ChatServiceTest {
         String expectedErrorMessage = "Wystąpił błąd serwera podczas komunikacji z AI. Sprawdź klucz API i logi.";
         assertEquals(expectedErrorMessage, actualResponse, "Powinien zostać zwrócony ogólny komunikat o błędzie serwera.");
 
-        // Weryfikacja: historia powinna pozostać pusta
         List<Content> history = (List<Content>) ReflectionTestUtils.getField(chatService, "chatHistory");
         assertEquals(0, history.size(), "Historia powinna być pusta po błędzie API.");
     }
@@ -186,7 +167,6 @@ public class ChatServiceTest {
         mockResponse.setCandidates(List.of());
         String responseBody = objectMapper.writeValueAsString(mockResponse);
 
-        // Użycie ExchangeFunction do symulowania pomyślnej odpowiedzi (ale bez kandydatów)
         ClientResponse mockResponse200Empty = mockSuccessResponse(responseBody);
         when(exchangeFunction.exchange(any())).thenReturn(Mono.just(mockResponse200Empty));
 
@@ -197,7 +177,6 @@ public class ChatServiceTest {
         String expectedErrorMessage = "Błąd: Nie udało się uzyskać poprawnej odpowiedzi od API.";
         assertEquals(expectedErrorMessage, actualResponse, "Powinien zostać zwrócony błąd braku poprawnej odpowiedzi.");
 
-        // Weryfikacja: historia powinna pozostać pusta
         List<Content> history = (List<Content>) ReflectionTestUtils.getField(chatService, "chatHistory");
         assertEquals(0, history.size(), "Historia powinna być pusta.");
     }

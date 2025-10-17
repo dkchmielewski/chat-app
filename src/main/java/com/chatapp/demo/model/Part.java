@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder // Dodano Builder
+@Builder
 public class Part {
     private String text;
 }
