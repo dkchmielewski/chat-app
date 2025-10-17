@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini Chatbot - Spring Boot & WebClient</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ustawienie głównej czcionki */
+        html {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Ustawienie maksymalnej wysokości i przewijania dla okna czatu */
+        #chat-window {
+            max-height: 70vh;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        /* Style dla wiadomości użytkownika */
+        .user-message {
+            background-color: #3b82f6; /* Blue-500 */
+            color: white;
+            border-bottom-right-radius: 0;
+        }
+        /* Style dla wiadomości bota */
+        .bot-message {
+            background-color: #e5e7eb; /* Gray-200 */
+            color: #1f2937; /* Gray-800 */
+            border-bottom-left-radius: 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+<div class="w-full max-w-2xl bg-white shadow-2xl rounded-xl flex flex-col h-[85vh]">
+    <!-- Nagłówek -->
+    <header class="p-4 border-b border-gray-200 bg-indigo-600 text-white rounded-t-xl">
+        <h1 class="text-xl font-bold">🤖 Chatbot Gemini (Spring Boot API)</h1>
+        <p class="text-sm opacity-80">Backend: Java/Spring Boot (WebClient). API: /api/chat</p>
+    </header>
+
+    <!-- Okno Czatu -->
+    <div id="chat-window" class="flex-grow p-4 space-y-4">
+        <!-- Wiadomości będą dodawane tutaj -->
+        <div class="flex justify-start">
+            <div class="bot-message p-3 rounded-lg max-w-xs md:max-w-md shadow-md">
+                Witaj! Jestem Chatbotem opartym na Gemini API. Zapytaj mnie o cokolwiek.
+            </div>
+        </div>
+    </div>
+
+    <!-- Stopka i Formularz Wprowadzania -->
+    <footer class="p-4 border-t border-gray-200">
+        <div id="loading-indicator" class="text-indigo-600 mb-2 hidden">
+            <div class="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+            AI myśli...
+        </div>
+        <form id="chat-form" class="flex space-x-3">
+            <input
+                    type="text"
+                    id="user-input"
+                    placeholder="Wpisz swoją wiadomość..."
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    autocomplete="off"
+            >
+            <button
+                    type="submit"
+                    id="send-button"
+                    class="bg-indigo-600 text-white px-5 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition duration-150 disabled:bg-indigo-400 disabled:cursor-not-allowed shadow-md"
+            >
+                Wyślij
+            </button>
+        </form>
+    </footer>
+</div>
+
+<script>
+        const chatForm = document.getElementById('chat-form');
+        const userInput = document.getElementById('user-input');
+        const chatWindow = document.getElementById('chat-window');
+        const sendButton = document.getElementById('send-button');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        // KLUCZOWY PUNKT POŁĄCZENIA: Zmienna przechowująca adres API
+        const API_URL = 'http://localhost:8080/api/chat';
+
+        // Funkcja do dodawania wiadomości do okna czatu
+        function appendMessage(text, role) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = role === 'user' ? 'flex justify-end' : 'flex justify-start';
+
+            const messageBubble = document.createElement('div');
+            // Stylizacja zależna od roli (klasy zdefiniowane w sekcji <style>)
+            const roleClass = role === 'user' ? 'user-message' : 'bot-message';
+
+            messageBubble.className = `${roleClass} p-3 rounded-xl max-w-xs md:max-w-md shadow-lg break-words`;
+            messageBubble.innerText = text;
+
+            messageContainer.appendChild(messageBubble);
+            chatWindow.appendChild(messageContainer);
+
+            // Automatyczne przewijanie na dół
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
+
+        // Obsługa wysyłania wiadomości
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const message = userInput.value.trim();
+
+            if (!message) return;
+
+            // 1. Wyświetl wiadomość użytkownika
+            appendMessage(message, 'user');
+            userInput.value = '';
+
+            // 2. Ustaw stan ładowania
+            sendButton.disabled = true;
+            loadingIndicator.classList.remove('hidden');
+
+            try {
+                // KLUCZOWY PUNKT POŁĄCZENIA: Żądanie do Spring Boot
+                const response = await fetch(API_URL, {
+                    method: 'POST', // Używamy metody POST
+                    headers: {
+                        // Wymagane przez Spring Boot do prawidłowej deserializacji JSON
+                        'Content-Type': 'application/json',
+                    },
+                    // Wysyłamy wiadomość w formacie JSON, który odpowiada DTO ChatRequest w Javie
+                    body: JSON.stringify({ message: message }),
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                // Odbieramy odpowiedź, która odpowiada DTO ChatResponse w Javie
+                const data = await response.json();
+
+                // 3. Wyświetl odpowiedź bota
+                appendMessage(data.response, 'bot');
+
+            } catch (error) {
+                console.error('Błąd komunikacji z backendem:', error);
+                // Komunikat błędu skierowany do użytkownika
+                appendMessage('Wystąpił błąd komunikacji. Sprawdź, czy serwer Spring Boot działa na porcie 8080 i czy nie ma błędów w konsoli (CORS, API Key).', 'bot');
+            } finally {
+                // 4. Przywróć stan przycisku i wskaźnika
+                sendButton.disabled = false;
+                loadingIndicator.classList.add('hidden');
+                userInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>

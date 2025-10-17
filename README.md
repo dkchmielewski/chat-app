@@ -76,9 +76,5 @@ Jeśli projekt korzysta z pełnego środowiska React (z package.json i narzędzi
 
 W tym projekcie plik App.test.jsx jest demonstracją. Aby go uruchomić, potrzebne jest pełne środowisko Node.js/Jest/RTL.
 
-----------------------------------------------------------------------------------------------------------------
-
-![img.png](img.png)
-
 
 
