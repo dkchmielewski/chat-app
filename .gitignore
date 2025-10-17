@@ -1,0 +1,100 @@
+-----------------------------------------------------------------------------
+
+Standardowe wykluczenia dla Maven
+
+-----------------------------------------------------------------------------
+
+Zbudowane i skompilowane pliki (Artefakty)
+
+/target/
+
+Logi
+
+*.log
+.log.
+/logs/ # <--- WYKLUCZENIE: Cały katalog logów
+
+Archiwa
+
+*.jar
+*.war
+*.zip
+*.tar
+*.rar
+
+-----------------------------------------------------------------------------
+
+Standardowe wykluczenia dla Java
+
+-----------------------------------------------------------------------------
+
+Skompilowane klasy
+
+*.class
+
+-----------------------------------------------------------------------------
+
+Konfiguracja IDE (IntelliJ IDEA)
+
+-----------------------------------------------------------------------------
+
+Katalog roboczy IntelliJ
+
+/.idea/
+
+Pliki osobiste, konfiguracje historii/zakładek (local workspace settings)
+
+*.iml
+*.iws
+*.ipr
+
+-----------------------------------------------------------------------------
+
+Pliki specyficzne dla Spring Boot/Konfiguracji (BEZPIECZEŃSTWO)
+
+-----------------------------------------------------------------------------
+
+Wykluczenie plików konfiguracyjnych zawierających klucz API (PRIORYTET BEZPIECZEŃSTWA)
+
+src/main/resources/application.properties
+src/main/resources/application.yml
+!src/main/resources/application-template.yml # Jeśli zdecydujesz się na template (wtedy to śledzimy)
+
+-----------------------------------------------------------------------------
+
+Maven Wrapper
+
+-----------------------------------------------------------------------------
+
+Wrappery Maven nie są potrzebne w repozytorium
+
+.mvn/wrapper/maven-wrapper.jar
+
+-----------------------------------------------------------------------------
+
+DODATKOWE WYKLUCZENIA OGÓLNE I JAVA
+
+-----------------------------------------------------------------------------
+
+Zmienne środowiskowe, których nie należy udostępniać
+
+.env
+
+Pliki tymczasowe/pomocnicze
+
+#*#
+~
+#
+.DS_Store # macOS
+Thumbs.db # Windows
+
+Skompilowane pliki Java (pomijane, mimo że target/ jest ignorowane)
+
+*.bak
+*.swo
+*.swp
+
+Katalogi zależności
+
+/bin/
+/out/
