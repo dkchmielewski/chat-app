@@ -50,6 +50,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+		<dependency>
+			<groupId>org.jacoco</groupId>
+			<artifactId>jacoco-maven-plugin</artifactId>
+			<version>0.8.12</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -57,6 +63,41 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- WTYCZKA JACOCO DLA POKRYCIA KODU -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<executions>
+					<!-- Wykonanie fazy weryfikacji (CHECK) po testach, aby sprawdzić progi -->
+					<execution>
+						<id>check</id>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<!-- Progi pokrycia i wykluczenia są umieszczone BEZPOŚREDNIO
+                                 wewnątrz tej sekcji konfiguracji dla goal:check -->
+							<rules>
+								<rule>
+									<element>BUNDLE</element> <!-- Sprawdzaj cały pakiet (BUNDLE) -->
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.80</minimum> <!-- MINIMALNE POKRYCIE: 80% -->
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+							<!-- Wyklucz klasy DTO i Application z pomiaru -->
+							<excludes>
+								<exclude>com.chatapp.demo.ChatbotApplication</exclude>
+								<exclude>com.chatapp.demo.model.*</exclude> <!-- Uproszczone wykluczanie wszystkich DTO w modelu -->
+							</excludes>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

@@ -1,0 +1,36 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ '**' ] # Uruchom przy pushu do KAŻDEJ gałęzi
+  pull_request:
+    branches: [ "main" ] # Uruchom przy Pull Requestach celujących w main
+
+jobs:
+  build:
+    # Użyj najnowszej wersji Ubuntu dla runnera
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17' # Wersja Java jest pobierana z pom.xml
+          distribution: 'temurin'
+          cache: maven # Optymalizacja pobierania zależności Mavena
+
+      - name: Run Tests and Check Coverage
+        # Użycie fazy 'verify' zapewnia uruchomienie JaCoCo i sprawdzenie progu 80%.
+        # Przekazujemy mockowaną wartość API jako właściwość Mavena dla testów.
+        run: |
+          mvn -B verify --file pom.xml -Dgemini.api.key=mock-key-for-ci
+
+      - name: Upload JAR Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: chat-app-package
+          # Ścieżka do skompilowanego pliku JAR
+          path: target/*.jar
