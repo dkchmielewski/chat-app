@@ -56,7 +56,7 @@ public class ChatControllerTest {
 
     @Test
     void shouldReturnBadRequestOnEmptyMessage() throws Exception {
-        String validationMessage = "Proszę podać wiadomość.";
+        String validationMessage = "Please provide a message.";
 
         ChatRequest chatRequest = new ChatRequest();
         chatRequest.setMessage("");
